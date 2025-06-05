@@ -60,6 +60,11 @@
 			clocks = <&zynqmp_clk 71>;
 		};
 
+		axi_data_offload_tx: axi-data-offload-tx@9c430000 {
+			compatible = "adi,axi-data-offload-1.0.a";
+			reg = <0x9c430000 0x10000>;
+		};
+
 		axi_ad9680_core: axi-ad9680-hpc@84a10000 {
 			compatible = "adi,axi-ad9680-1.0";
 			reg = <0x84a10000 0x10000>;
@@ -80,6 +85,7 @@
 			dma-names = "tx";
 			spibus-connected = <&dac0_ad9152>;
 			adi,axi-pl-fifo-enable;
+			adi,axi-data-offload-connected = <&axi_data_offload_tx>;
 
 			/* jesd204-fsm support */
 			jesd204-device;
