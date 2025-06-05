@@ -688,6 +688,18 @@ static int ad4062_request_trigger(struct iio_dev *indio_dev)
 	if (ret)
 		return ret;
 
+	/**
+	 * REVISIT: This impedes removing the driver.
+	 * And is done because the
+	 * iio_triggered_buffer_cleanup
+	 * called on removal, set by
+	 * devm_iio_triggered_buffer_setup
+	 * doesn't properly clean-up, then
+	 * ...
+	 * called on removal, set by
+	 * devm_iio_device_register (need confirmation)
+	 * causes a NULL pointer deference.
+	 */
 	indio_dev->trig = iio_trigger_get(st->trigger);
 
 	return 0;
