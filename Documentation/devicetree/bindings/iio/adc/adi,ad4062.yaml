@@ -26,41 +26,16 @@ properties:
     maxItems: 1
 
   interrupts:
-    items:
-      - description: Signal coming from the GP0 pin.
-      - description: Signal coming from the GP1 pin.
-
-  interrupt-names:
-    items:
-      - const: gp0
-      - const: gp1
-
-  trigger-sources:
     minItems: 1
     maxItems: 2
-    description:
-      Describes the output pin and event associated.
 
-  "#trigger-source-cells":
-    const: 2
-    description: |
-      Output pins used as trigger source.
-
-      Cell 0 defines the event:
-      * 0 = Data ready
-      * 1 = Min threshold
-      * 2 = Max threshold
-      * 3 = Either threshold
-      * 4 = CHOP control
-      * 5 = Device enable
-      * 6 = Device ready (only GP1)
-
-      Cell 1 defines which pin:
-      * 0 = GP0
-      * 1 = GP1
-
-      For convenience, macros for these values are available in
-      dt-bindings/iio/adc/adi,ad4052.h.
+  interrupt-names:
+    # TODO in the rst file describe that the index 0 drady and 1 threither
+    items:
+      - const: gp0
+        description: Signal coming from the GP0 pin.
+      - const: gp1
+        description: Signal coming from the GP1 pin.
 
   vdd-supply:
     description: Analog power supply.
@@ -99,11 +74,6 @@ examples:
             vio-supply = <&vio>;
             ref-supply = <&ref>;
 
-            #trigger-source-cells = <2>;
-            trigger-sources = <&adc AD4052_TRIGGER_EVENT_EITHER_THRESH
-                                    AD4052_TRIGGER_PIN_GP0
-                               &adc AD4052_TRIGGER_EVENT_DATA_READY
-                                    AD4052_TRIGGER_PIN_GP1>;
             interrupt-parent = <&gpio>;
             interrupts = <0 0 IRQ_TYPE_EDGE_RISING>,
                          <0 1 IRQ_TYPE_EDGE_FALLING>;
