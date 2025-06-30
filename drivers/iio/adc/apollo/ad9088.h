@@ -105,6 +105,8 @@ enum {
 	DAC_INVSINC_EN,
 	CFIR_PROFILE_SEL,
 	CFIR_ENABLE,
+	FSRC_N_M,
+	FSRC_EN,
 	FFH_FNCO_INDEX,
 	FFH_FNCO_FREQUENCY,
 	FFH_FNCO_SELECT,
@@ -159,6 +161,15 @@ struct ad9088_clock {
 };
 
 #define to_clk_priv(_hw) container_of(_hw, struct ad9088_clock, hw)
+
+struct ad9088_fsrc {
+    u32 tx_m;
+    u32 tx_n;
+    bool tx_en;
+    u32 rx_m;
+    u32 rx_n;
+    bool rx_en;
+};
 
 struct _ad9088_ffh {
 	struct {
@@ -277,8 +288,10 @@ struct ad9088_phy {
 
 	struct iio_channel      *iio_adf4030;
 	struct iio_channel      *iio_adf4382;
+	struct iio_channel      *iio_axi_fsrc;
 
 	adi_apollo_fw_provider_t fw_provider;
+	struct ad9088_fsrc fsrc;
 	union ad9088_ffh ffh;
 
 	adi_apollo_sniffer_param_t sniffer_config;

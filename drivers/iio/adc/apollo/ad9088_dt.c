@@ -118,6 +118,26 @@ static int ad9088_jesd_lane_setup(struct ad9088_phy *phy)
 	return 0;
 }
 
+static int ad9088_parse_fsrc(struct ad9088_phy *phy)
+{
+	struct device *dev = &phy->spi->dev;
+	struct device_node *node = dev->of_node;
+	adi_apollo_rm_fifo_cfg_t *rm_fifo;
+	bool invalid_en, sample_repeat_en;
+
+	invalid_en = of_property_read_bool(node, "adi,invalid-en");
+	sample_repeat_en = of_property_read_bool(node, "adi,sample-repeat-en");
+
+	for (int s = 0; s < ADI_APOLLO_NUM_SIDES; s++) {
+		for (u8 l = 0 ; l < ADI_APOLLO_JESD_LINKS ; l++){
+			rm_fifo = &phy->profile.rx_path[s].rx_dformat[l].rm_fifo;
+			rm_fifo->sample_repeat_en = sample_repeat_en;
+		}
+	}
+
+	return 0;
+}
+
 int ad9088_parse_dt(struct ad9088_phy *phy)
 {
 	struct device *dev = &phy->spi->dev;
@@ -195,6 +215,8 @@ int ad9088_parse_dt(struct ad9088_phy *phy)
 		phy->profile.jrx[0].common_link_cfg.subclass = val;
 		phy->profile.jrx[1].common_link_cfg.subclass = val;
 	}
+
+	ad9088_parse_fsrc(phy);
 
 	dev_dbg(dev, "Profile CRC32 %u\n", phy->profile.profile_checksum);
 	phy->profile.profile_checksum = crc32_be(0, (unsigned char const *)p, sizeof(*p) - sizeof(u32));
