@@ -25,6 +25,12 @@ config AXI_JESD204_RX
 	depends on COMMON_CLK
 	select REGMAP_MMIO
 
+config AXI_FSRC_SEQUENCER
+	tristate "Analog Devices AXI FSRC Sequencer Support"
+	help
+	  This driver allows to inject and remove invalid frames
+	  from a stream.
+
 config XILINX_TRANSCEIVER
 	tristate
 
