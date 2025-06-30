@@ -36,6 +36,32 @@ extern "C" {
 int32_t adi_apollo_fsrc_pgm(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t fsrcs, adi_apollo_fsrc_pgm_t *config);
 
 /**
+ * \brief  Enable FSRC
+ *
+ * \param[in]  device              Context variable - Pointer to the APOLLO device data structure
+ * \param[in]  terminal            Target terminal \ref adi_apollo_terminal_e
+ * \param[in]  fsrcs               Target FSRC  \ref adi_apollo_fsrc_sel_e
+ * \param[in]  enable              1 to enable, 0 disable
+ *
+ * \return API_CMS_ERROR_OK    API Completed Successfully
+ * \return <0                  Failed. \ref adi_cms_error_e for details.
+ */
+int32_t adi_apollo_fsrc_en(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t fsrcs, bool enable);
+
+/**
+ * \brief  Bypass FSRC
+ *
+ * \param[in]  device              Context variable - Pointer to the APOLLO device data structure
+ * \param[in]  terminal            Target terminal \ref adi_apollo_terminal_e
+ * \param[in]  fsrcs               Target FSRC  \ref adi_apollo_fsrc_sel_e
+ * \param[in]  enable              1 to enable bypass, 0 disable
+ *
+ * \return API_CMS_ERROR_OK    API Completed Successfully
+ * \return <0                  Failed. \ref adi_cms_error_e for details.
+ */
+int32_t adi_apollo_fsrc_bypass(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t fsrcs, bool enable);
+
+/**
  * \brief  Inspect FSRC parameters
  *
  * \param[in]  device              Context variable - Pointer to the APOLLO device data structure

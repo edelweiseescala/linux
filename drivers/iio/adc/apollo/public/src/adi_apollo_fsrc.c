@@ -95,6 +95,65 @@ int32_t adi_apollo_fsrc_pgm(adi_apollo_device_t *device, adi_apollo_terminal_e t
     return API_CMS_ERROR_OK; 
 }
 
+
+int32_t adi_apollo_fsrc_en(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t fsrcs, bool enable)
+{
+    uint32_t regmap_base_addr = 0;
+    adi_apollo_blk_sel_t fsrc;
+    int32_t err;
+    uint8_t i;
+
+    ADI_APOLLO_NULL_POINTER_RETURN(device);
+    ADI_APOLLO_LOG_FUNC();
+    ADI_APOLLO_DEV_FEAT_LOCKOUT_RETURN(terminal, ADI_APOLLO_EC_FSRC_LOCK);
+    ADI_APOLLO_FSRC_BLK_SEL_MASK(fsrcs);
+
+    /* Set the stream enables */
+    for(i = 0; i < ADI_APOLLO_FSRC_NUM; i ++) {
+        fsrc = fsrcs & (ADI_APOLLO_FSRC_A0 << i);
+        if (fsrc > 0) {
+            regmap_base_addr = calc_fsrc_base(terminal, i);
+
+            if (i % 2 == 0) {
+                err = adi_apollo_hal_bf_set(device, BF_FSRC_EN0_INFO(regmap_base_addr), enable);
+                ADI_APOLLO_ERROR_RETURN(err);
+            } else {
+                err = adi_apollo_hal_bf_set(device, BF_FSRC_EN1_INFO(regmap_base_addr), enable);
+                ADI_APOLLO_ERROR_RETURN(err);
+            }
+        }
+    }
+
+    return API_CMS_ERROR_OK;
+}
+
+
+int32_t adi_apollo_fsrc_bypass(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t fsrcs, bool enable)
+{
+    uint32_t regmap_base_addr = 0;
+    adi_apollo_blk_sel_t fsrc;
+    int32_t err;
+    uint8_t i;
+
+    ADI_APOLLO_NULL_POINTER_RETURN(device);
+    ADI_APOLLO_LOG_FUNC();
+    ADI_APOLLO_DEV_FEAT_LOCKOUT_RETURN(terminal, ADI_APOLLO_EC_FSRC_LOCK);
+    ADI_APOLLO_FSRC_BLK_SEL_MASK(fsrcs);
+
+    for(i = 0; i < ADI_APOLLO_FSRC_NUM; i += 2) {                 //Common bitfield for 0 & 1 fsrcs
+        fsrc = fsrcs & ((ADI_APOLLO_FSRC_A0 << i) | (ADI_APOLLO_FSRC_A0 << (i+1)));
+        if (fsrc > 0) {
+            regmap_base_addr = calc_fsrc_base(terminal, i);
+
+            err = adi_apollo_hal_bf_set(device, BF_FSRC_BYPASS_INFO(regmap_base_addr), enable);
+            ADI_APOLLO_ERROR_RETURN(err);
+        }
+    }
+
+    return API_CMS_ERROR_OK;
+}
+
+
 int32_t adi_apollo_fsrc_inspect(adi_apollo_device_t *device, adi_apollo_terminal_e terminal, adi_apollo_blk_sel_t  fsrc, adi_apollo_fsrc_inspect_t *fsrc_inspect)
 {
     int32_t err;
