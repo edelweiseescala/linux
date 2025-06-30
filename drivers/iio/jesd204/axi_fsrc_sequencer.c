@@ -57,14 +57,14 @@
 #define   REG_ACCUM_SET_VAL_ADDR_(x)		FIELD_PREP(GENMASK(3, 0), (x))
 #define REG_ACCUM_SET_VAL_L			0x28
 #define REG_ACCUM_SET_VAL_H			0x2c
-
-#define TX_FSRC_ACCUM_WIDTH			64
-#define TX_FSRC_DEFAULT_N			2
-#define TX_FSRC_DEFAULT_M			3
+#define REG_ACCUM_WIDTH				0x30
 
 // RX Register
 #define REG_RX_ENABLE				0x10
 #define   REG_RX_ENABLE_ENABLE			BIT(0)
+
+#define TX_FSRC_DEFAULT_N			2
+#define TX_FSRC_DEFAULT_M			3
 
 enum {
 	AXI_FSRC_RX_ENABLE,
@@ -81,6 +81,7 @@ struct axi_fsrc {
 	const struct axi_fsrc_sequencer_info *info;
 	struct device dev;
 	bool tx_active;
+	u8 accum_width;
 	u8 m;
 	u8 n;
 	u8 en_mask;
@@ -152,14 +153,13 @@ static int axi_fsrc_tx_active(struct axi_fsrc *st, bool start)
 	return 0;
 }
 
-static int axi_fsrc_tx_set_ratio(struct axi_fsrc *st, const u32 n, const u32 m)
+static int axi_fsrc_tx_set_ratio(struct axi_fsrc *st, const u64 n, const u64 m)
 {
 	u64 val;
-	const u128 one_fixed = (u128)1 << TX_FSRC_ACCUM_WIDTH;
-	const u128 ratio_fixed = (one_fixed * n) / m;
+	const u64 one_fixed = 1ULL << st->accum_width;
+	const u64 ratio_fixed = mul_u64_u64_div_u64(one_fixed, n, m);
 
-	axi_fsrc_write(st->addr[AXI_FSRC_TX], REG_CONV_MASK,
-		       REG_CONV_MASK_MASK);
+	axi_fsrc_write(st->addr[AXI_FSRC_TX], REG_CONV_MASK, (u32)REG_CONV_MASK_MASK);
 	for (int i = 0; i <= 15; i++){
 		val = ((~ratio_fixed + 1) + (i * ratio_fixed));
 		axi_fsrc_write(st->addr[AXI_FSRC_TX], REG_ACCUM_SET_VAL_L, val);
@@ -479,6 +479,7 @@ static int axi_fsrc_sequencer_probe(struct platform_device *pdev)
 	if (val != 0xBE)
 		return dev_err_probe(&pdev->dev, -EINVAL, "Failed sanity test\n");
 
+	st->accum_width = axi_fsrc_read(st->seq, REG_ACCUM_WIDTH);
 	ret = axi_fsrc_init(st);
 	if (ret)
 		return ret;
