@@ -138,6 +138,51 @@ static int ad9088_parse_fsrc(struct ad9088_phy *phy)
 	return 0;
 }
 
+static int ad9088_parse_adf4030_phase(struct ad9088_phy *phy, s64 *val) {
+	struct device_node *node = phy->spi->dev.of_node;
+	size_t bytes_read, buff_size = 256;
+	struct file *file;
+	loff_t pos = 0;
+	char *buffer;
+	int ret;
+
+	char *path = kasprintf(GFP_KERNEL, "/var/opt/%s/adf4030_phase", node->full_name);
+	if (!path)
+		return -ENOMEM;
+	file = filp_open(path, O_RDONLY, 0);
+	if (IS_ERR(file)) {
+		ret = PTR_ERR(file);
+		if (ret == -ENOENT) {
+			ret = 0;
+			dev_dbg(&phy->spi->dev, "File %s does not exist.\n", path);
+		}
+		kfree(path);
+		return ret;
+	}
+	dev_dbg(&phy->spi->dev, "Parsing %s.\n", path);
+	kfree(path);
+
+	buffer = kmalloc(buff_size, GFP_KERNEL);
+	if (!buffer){
+		filp_close(file, NULL);
+		return -ENOMEM;
+	}
+
+	bytes_read = kernel_read(file, buffer, buff_size, &pos);
+	if (bytes_read < 0)
+		return -bytes_read;
+	else
+		buffer[bytes_read] = '\0';
+
+	ret = kstrtoll(buffer, 10, val);
+
+	kfree(buffer);
+	filp_close(file, NULL);
+
+	return ret;
+}
+
+
 int ad9088_parse_dt(struct ad9088_phy *phy)
 {
 	struct device *dev = &phy->spi->dev;
@@ -192,6 +237,17 @@ int ad9088_parse_dt(struct ad9088_phy *phy)
 
 	phy->rx_nyquist_zone = 1;
 	of_property_read_u32(node, "adi,nyquist-zone", &phy->rx_nyquist_zone);
+	if (of_property_read_bool(node, "adi,adf4030-phase-persistent")) {
+		s64 val;
+		ret = ad9088_parse_adf4030_phase(phy, &val);
+		if (ret)
+			return ret;
+		dev_dbg(&phy->spi->dev, "Read adf4030 bsync phase %llu\n", val);
+		phy->adf4030_phase = val;
+		phy->adf4030_phase_persistent = 1;
+	} else {
+		phy->adf4030_phase_persistent = 0;
+	}
 
 	if (phy->rx_nyquist_zone != 1 && phy->rx_nyquist_zone != 2) {
 		dev_err(dev, "Invalid Nyquist zone %u\n", phy->rx_nyquist_zone);

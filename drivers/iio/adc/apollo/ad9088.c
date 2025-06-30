@@ -5681,99 +5681,104 @@ static int ad9088_jesd204_post_setup_stage1(struct jesd204_dev *jdev,
 		return JESD204_STATE_CHANGE_DONE;
 	}
 
-	ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_FREQUENCY);
-	if (ret < 0) {
-		dev_err(dev, "Failed to read adf4030 frequency\n");
-		return ret;
+	if (!phy->adf4030_phase_persistent) {
+		ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_FREQUENCY);
+		if (ret < 0) {
+			dev_err(dev, "Failed to read adf4030 frequency\n");
+			return ret;
+		}
+
+		bsync_out_period_fs = div_u64(1000000000000000ULL, val);
+
+		dev_dbg(dev, "bsync_out_period_fs %lld\n", bsync_out_period_fs);
+
+		ret = ad9088_iio_write_channel_ext_info(phy, phy->iio_adf4030, "output_enable", 1);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable adf4030 output\n");
+			return ret;
+		}
+		ret = iio_write_channel_attribute(phy->iio_adf4030, 0, 0, IIO_CHAN_INFO_PHASE);
+		if (ret < 0) {
+			dev_err(dev, "Failed to set adf4030 phase\n");
+			return ret;
+		}
+
+		ret = ad9088_mcs_init_cal_setup(phy);
+		if (ret) {
+			dev_err(dev, "Failed to setup MCS init cal\n");
+			return ret;
+		}
+
+		ret = ad9088_delta_t_measurement_set(phy, 0);
+		if (ret) {
+			dev_err(dev, "Failed to set delta_t measurement\n");
+			return ret;
+		}
+		ret = ad9088_delta_t_measurement_get(phy, 0, &apollo_delta_t0);
+		if (ret) {
+			dev_err(dev, "Failed to get delta_t measurement\n");
+			return ret;
+		}
+		dev_dbg(dev, "apollo_delta_t0 %lld fs\n", apollo_delta_t0);
+		ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_PHASE);
+		if (ret < 0) {
+			dev_err(dev, "Failed to read adf4030 phase\n");
+			return ret;
+		}
+		adf4030_delta_t0 = (s64)((((u64)val2) << 32) | (u32)val);
+		dev_dbg(dev, "adf4030_delta_t0 %lld fs\n", adf4030_delta_t0);
+
+		ret = ad9088_iio_write_channel_ext_info(phy, phy->iio_adf4030, "output_enable", 0);
+		if (ret < 0) {
+			dev_err(dev, "Failed to disable adf4030 output\n");
+			return ret;
+		}
+		ret = ad9088_delta_t_measurement_set(phy, 1);
+		if (ret) {
+			dev_err(dev, "Failed to set delta_t measurement\n");
+			return ret;
+		}
+		ret = ad9088_delta_t_measurement_get(phy, 1, &apollo_delta_t1);
+		if (ret) {
+			dev_err(dev, "Failed to get delta_t measurement\n");
+			return ret;
+		}
+		dev_dbg(dev, "apollo_delta_t1 %lld fs\n", apollo_delta_t1);
+
+		ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_PHASE);
+		if (ret < 0) {
+			dev_err(dev, "Failed to read adf4030 phase\n");
+			return ret;
+		}
+		adf4030_delta_t1 = (s64)((((u64)val2) << 32) | (u32)val);
+		dev_dbg(dev, "adf4030_delta_t1 %lld fs\n", adf4030_delta_t1);
+
+		ret = ad9088_delta_t_measurement_set(phy, 2);
+		if (ret) {
+			dev_err(dev, "Failed to set delta_t measurement\n");
+			return ret;
+		}
+
+		calc_delay = (adf4030_delta_t0 - adf4030_delta_t1) - (apollo_delta_t1 - apollo_delta_t0);
+		dev_dbg(dev, "calc_delay %lld fs\n", calc_delay);
+		div64_u64_rem(calc_delay + bsync_out_period_fs, bsync_out_period_fs, &round_trip_delay);
+		dev_dbg(dev, "round_trip_delay %lld fs\n", round_trip_delay);
+		path_delay = round_trip_delay >> 1;
+
+		dev_info(dev, "Total BSYNC path delay %lld fs\n", path_delay);
+
+		val = lower_32_bits(-1 * path_delay);
+		val2 = upper_32_bits(-1 * path_delay);
+	} else {
+		val = lower_32_bits(phy->adf4030_phase);
+		val2 = upper_32_bits(phy->adf4030_phase);
 	}
-
-	bsync_out_period_fs = div_u64(1000000000000000ULL, val);
-
-	dev_dbg(dev, "bsync_out_period_fs %lld\n", bsync_out_period_fs);
 
 	ret = ad9088_iio_write_channel_ext_info(phy, phy->iio_adf4030, "output_enable", 1);
 	if (ret < 0) {
 		dev_err(dev, "Failed to enable adf4030 output\n");
 		return ret;
 	}
-	ret = iio_write_channel_attribute(phy->iio_adf4030, 0, 0, IIO_CHAN_INFO_PHASE);
-	if (ret < 0) {
-		dev_err(dev, "Failed to set adf4030 phase\n");
-		return ret;
-	}
-
-	ret = ad9088_mcs_init_cal_setup(phy);
-	if (ret) {
-		dev_err(dev, "Failed to setup MCS init cal\n");
-		return ret;
-	}
-
-	ret = ad9088_delta_t_measurement_set(phy, 0);
-	if (ret) {
-		dev_err(dev, "Failed to set delta_t measurement\n");
-		return ret;
-	}
-	ret = ad9088_delta_t_measurement_get(phy, 0, &apollo_delta_t0);
-	if (ret) {
-		dev_err(dev, "Failed to get delta_t measurement\n");
-		return ret;
-	}
-	dev_dbg(dev, "apollo_delta_t0 %lld fs\n", apollo_delta_t0);
-	ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_PHASE);
-	if (ret < 0) {
-		dev_err(dev, "Failed to read adf4030 phase\n");
-		return ret;
-	}
-	adf4030_delta_t0 = (s64)((((u64)val2) << 32) | (u32)val);
-	dev_dbg(dev, "adf4030_delta_t0 %lld fs\n", adf4030_delta_t0);
-
-	ret = ad9088_iio_write_channel_ext_info(phy, phy->iio_adf4030, "output_enable", 0);
-	if (ret < 0) {
-		dev_err(dev, "Failed to disable adf4030 output\n");
-		return ret;
-	}
-	ret = ad9088_delta_t_measurement_set(phy, 1);
-	if (ret) {
-		dev_err(dev, "Failed to set delta_t measurement\n");
-		return ret;
-	}
-	ret = ad9088_delta_t_measurement_get(phy, 1, &apollo_delta_t1);
-	if (ret) {
-		dev_err(dev, "Failed to get delta_t measurement\n");
-		return ret;
-	}
-	dev_dbg(dev, "apollo_delta_t1 %lld fs\n", apollo_delta_t1);
-
-	ret = iio_read_channel_attribute(phy->iio_adf4030, &val, &val2, IIO_CHAN_INFO_PHASE);
-	if (ret < 0) {
-		dev_err(dev, "Failed to read adf4030 phase\n");
-		return ret;
-	}
-	adf4030_delta_t1 = (s64)((((u64)val2) << 32) | (u32)val);
-	dev_dbg(dev, "adf4030_delta_t1 %lld fs\n", adf4030_delta_t1);
-
-	ret = ad9088_delta_t_measurement_set(phy, 2);
-	if (ret) {
-		dev_err(dev, "Failed to set delta_t measurement\n");
-		return ret;
-	}
-
-	calc_delay = (adf4030_delta_t0 - adf4030_delta_t1) - (apollo_delta_t1 - apollo_delta_t0);
-	dev_dbg(dev, "calc_delay %lld fs\n", calc_delay);
-	div64_u64_rem(calc_delay + bsync_out_period_fs, bsync_out_period_fs, &round_trip_delay);
-	dev_dbg(dev, "round_trip_delay %lld fs\n", round_trip_delay);
-	path_delay = round_trip_delay >> 1;
-
-	dev_info(dev, "Total BSYNC path delay %lld fs\n", path_delay);
-
-	ret = ad9088_iio_write_channel_ext_info(phy, phy->iio_adf4030, "output_enable", 1);
-	if (ret < 0) {
-		dev_err(dev, "Failed to enable adf4030 output\n");
-		return ret;
-	}
-
-	val = lower_32_bits(-1 * path_delay);
-	val2 = upper_32_bits(-1 * path_delay);
 
 	ret = iio_write_channel_attribute(phy->iio_adf4030, val, val2, IIO_CHAN_INFO_PHASE);
 	if (ret < 0) {

@@ -16,6 +16,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/firmware.h>
+#include <linux/fs.h>
 #include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
@@ -241,6 +242,7 @@ struct ad9088_phy {
 
 	bool is_initialized;
 	bool standalone;
+	bool adf4030_phase_persistent;
 	bool device_profile_firmware_load;
 	bool side_b_use_own_tpl_en;
 	bool complex_tx;
@@ -304,6 +306,8 @@ struct ad9088_phy {
 
 	u8 loopback_mode[ADI_APOLLO_NUM_SIDES];
 	u8 lb1_blend[ADI_APOLLO_NUM_SIDES];
+
+	s64  adf4030_phase;
 };
 
 extern int ad9088_iio_write_channel_ext_info(struct ad9088_phy *phy, struct iio_channel *chan,
