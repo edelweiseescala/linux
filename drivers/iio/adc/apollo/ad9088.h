@@ -221,7 +221,7 @@ struct ad9088_phy {
 	struct gpio_desc *rx2_en_gpio;
 	struct gpio_desc *tx1_en_gpio;
 	struct gpio_desc *tx2_en_gpio;
-	struct gpio_desc *triq_req_gpio;
+	struct gpio_desc *trig_req_gpio;
 	struct gpio_desc *transceiver_reset_gpio;
 	struct regulator *supply_reg;
 	struct axi_hsci_state *hsci;

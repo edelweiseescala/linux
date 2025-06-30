@@ -5978,14 +5978,16 @@ static int ad9088_jesd204_post_setup_stage4(struct jesd204_dev *jdev,
 
 	if (phy->trig_sync_en) {
 		u16 phase, phase1;
-		/*
-		 * Wait for the trigger sync to finish.
-		 */
-		ret = adi_apollo_hal_bf_wait_to_set(device, BF_TRIGGER_SYNC_DONE_A0_INFO(MCS_SYNC_MCSTOP0), 1000000,
-						    100);   // Will set when Apollo recvs a trigger pulse
-		if (ret) {
-			dev_err(dev, "Error in adi_apollo_hal_bf_wait_to_set %d\n", ret);
-			return ret;
+		if (phy->trig_req_gpio) {
+			/*
+			 * Wait for the trigger sync to finish.
+			 * Will set when Apollo recvs a trigger pulse.
+			 */
+			ret = adi_apollo_hal_bf_wait_to_set(device, BF_TRIGGER_SYNC_DONE_A0_INFO(MCS_SYNC_MCSTOP0), 1000000, 100);
+			if (ret) {
+				dev_err(dev, "Error in adi_apollo_hal_bf_wait_to_set %d\n", ret);
+				return ret;
+			}
 		}
 		ret = adi_apollo_clk_mcs_trig_phase_get(&phy->ad9088, ADI_APOLLO_TRIG_PIN_A0, &phase, &phase1);
 		if (ret) {
