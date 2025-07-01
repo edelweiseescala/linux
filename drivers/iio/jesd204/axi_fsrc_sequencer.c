@@ -59,7 +59,8 @@
 #define REG_ACCUM_SET_VAL_H			0x2c
 
 #define TX_FSRC_ACCUM_WIDTH			64
-#define TX_FSRC_CHANNEL_TO_SAMPLE_RATE_RATIO	0.6666667
+#define TX_FSRC_DEFAULT_N			2
+#define TX_FSRC_DEFAULT_M			3
 
 // RX Register
 #define REG_RX_ENABLE				0x10
@@ -151,11 +152,11 @@ static int axi_fsrc_tx_active(struct axi_fsrc *st, bool start)
 	return 0;
 }
 
-static int axi_fsrc_tx_set_ratio(struct axi_fsrc *st, const double ratio)
+static int axi_fsrc_tx_set_ratio(struct axi_fsrc *st, const u32 n, const u32 m)
 {
 	u64 val;
 	const u128 one_fixed = (u128)1 << TX_FSRC_ACCUM_WIDTH;
-	const u128 ratio_fixed = one_fixed * ratio;
+	const u128 ratio_fixed = (one_fixed * n) / m;
 
 	axi_fsrc_write(st->addr[AXI_FSRC_TX], REG_CONV_MASK,
 		       REG_CONV_MASK_MASK);
@@ -215,7 +216,6 @@ static ssize_t axi_fsrc_ext_write(struct iio_dev *indio_dev,
 {
 	struct axi_fsrc *st = iio_priv(indio_dev);
 	u32 n = 0, m = 0;
-	double ratio;
 	bool enable;
 	int ret = 0;
 
@@ -248,8 +248,7 @@ static ssize_t axi_fsrc_ext_write(struct iio_dev *indio_dev,
 		case AXI_FSRC_TX_RATIO_SET:
 			if ((m == 0) || (n / m >= 2))
 				return -EINVAL;
-			ratio = (float)n / (float)m;
-			axi_fsrc_tx_set_ratio(st, ratio);
+			axi_fsrc_tx_set_ratio(st, n, m);
 			break;
 		}
 
@@ -384,7 +383,7 @@ static int axi_fsrc_seq_configure(struct axi_fsrc *st, adi_fpga_apollo_hw_fsrc_c
 
 static int axi_fsrc_tx_configure(struct axi_fsrc *st)
 {
-	return axi_fsrc_tx_set_ratio(st, TX_FSRC_CHANNEL_TO_SAMPLE_RATE_RATIO);
+	return axi_fsrc_tx_set_ratio(st, TX_FSRC_DEFAULT_N, TX_FSRC_DEFAULT_M);
 }
 
 static int axi_fsrc_configure_rx(struct axi_fsrc *st)
