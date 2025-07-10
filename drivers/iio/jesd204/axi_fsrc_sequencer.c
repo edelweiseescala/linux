@@ -3,6 +3,9 @@
  * Analog Devices AXI FSRC Sequencer
  *
  * Copyright 2025 Analog Devices Inc.
+ *
+ * TODO:
+ * * ext_trig_enable: enables receiving a trig to start tx side.
  */
 
 #include <linux/module.h>
