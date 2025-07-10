@@ -26,6 +26,9 @@
 #define SYSREF_CLK_MHz		(9765625)
 #endif
 
+#define WITH_AION
+#define WITH_FSRC
+
 #ifdef WITH_AION
 #define JESD_SUBCLASS 1
 #else
