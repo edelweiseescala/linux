@@ -314,6 +314,7 @@ extern int ad9088_iio_write_channel_ext_info(struct ad9088_phy *phy, struct iio_
 										     const char *ext_name, long long val);
 extern int ad9088_parse_dt(struct ad9088_phy *phy);
 extern int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e side_sel);
+extern int ad9088_fsrc_probe(struct ad9088_phy *phy);
 extern int ad9088_ffh_probe(struct ad9088_phy *phy);
 extern int32_t adi_ad9088_calc_nco_ftw(adi_apollo_device_t *device,
 		                               u64 freq, int64_t nco_shift,
@@ -324,6 +325,13 @@ extern int32_t adi_ad9088_calc_nco_ftw32(adi_apollo_device_t *device,
 extern void ad9088_iiochan_to_fddc_cddc(struct ad9088_phy *phy, const struct iio_chan_spec *chan,
 										u8 *fddc_num, u32 *fddc_mask, u8 *cddc_num, u32 *cddc_mask,
 										u8 *side);
+extern ssize_t ad9088_ext_info_read_fsrc(struct iio_dev *indio_dev,
+										 uintptr_t private,
+										 const struct iio_chan_spec *chan, char *buf);
+extern ssize_t ad9088_ext_info_write_fsrc(struct iio_dev *indio_dev,
+										  uintptr_t private,
+										  const struct iio_chan_spec *chan,
+										  const char *buf, size_t len);
 extern ssize_t ad9088_ext_info_read_ffh(struct iio_dev *indio_dev,
 										uintptr_t private,
 										const struct iio_chan_spec *chan, char *buf);
@@ -331,3 +339,4 @@ extern ssize_t ad9088_ext_info_write_ffh(struct iio_dev *indio_dev,
 										 uintptr_t private,
 										 const struct iio_chan_spec *chan,
 										 const char *buf, size_t len);
+extern int ad9088_fsrc_setup(struct ad9088_phy *phy, adi_apollo_terminal_e terminal);
