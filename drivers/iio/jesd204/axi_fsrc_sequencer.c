@@ -335,7 +335,9 @@ static const struct of_device_id axi_fsrc_sequencer_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, axi_fsrc_sequencer_of_match);
 
-int axi_fsrc_sequencer_add_to_topology(struct device *dev, struct axi_fsrc *st, struct device_node *np)
+static int axi_fsrc_sequencer_add_to_topology(struct device *dev,
+					      struct axi_fsrc *st,
+					      struct device_node *np)
 {
 	const char rx_a[] = "adi,fsrc_rx_a";
 	const char tx_a[] = "adi,fsrc_tx_a";
