@@ -113,7 +113,7 @@ ssize_t ad9088_ext_info_write_fsrc(struct iio_dev *indio_dev, uintptr_t private,
 		}
 		break;
 	case FSRC_EN:
-		ret = strtobool(buf, &enable);
+		ret = kstrtobool(buf, &enable);
 		if (ret)
 			return ret;
 
