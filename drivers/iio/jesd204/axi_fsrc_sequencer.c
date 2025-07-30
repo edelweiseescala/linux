@@ -227,7 +227,7 @@ static ssize_t axi_fsrc_ext_write(struct iio_dev *indio_dev,
 		case AXI_FSRC_RX_ENABLE:
 		case AXI_FSRC_TX_ENABLE:
 		case AXI_FSRC_TX_ACTIVE:
-			ret = strtobool(buf, &enable);
+			ret = kstrtobool(buf, &enable);
 			if (ret)
 				return ret;
 			break;
