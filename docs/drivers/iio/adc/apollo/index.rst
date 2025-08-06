@@ -897,7 +897,8 @@ for example:
 .. important::
 
    If the trigger mode is not set to 4 (``ADI_APOLLO_NCO_CHAN_SEL_DIRECT_REGMAP``),
-   the method will return -EINVAL;
+   the method will return -EINVAL; But if set to any GPIO mode, it will also log
+   the GPIO selection for the written value, for convenience.
 
 .. shell::
 
@@ -948,7 +949,7 @@ For example:
 .. shell::
 
    /sys/bus/iio/devices/iio:device8
-   $echo 1 > out_voltage0_i_ffh_fnco_mode
+   $echo 4 > out_voltage0_i_ffh_fnco_mode
 
 .. _apollo gpio:
 
@@ -997,6 +998,38 @@ Or from user space through `gpiod <https://git.kernel.org/pub/scm/libs/libgpiod/
    $gpioset a4000000.gpio 3=1
    $gpioget ad9088 3
     1
+
+Roles
++++++
+
+4 bits are required for block selection and by default take range [18:15].
+5 bits are required for profile selection and by default take range [23:19].
+
+Block Select
+^^^^^^^^^^^^
+
+.. TODO
+
+To set the block on which a profile is applied, write it to to
+``out_voltageX_[i|q]_ffh_fnco_mode``.
+
+The options are:
+
+::
+
+    ADI_APOLLO_GPIO_BLOCK_FNCO           = 0,
+    ADI_APOLLO_GPIO_BLOCK_CNCO           = 1,
+    ADI_APOLLO_GPIO_BLOCK_FNCO_CNCO      = 2,
+    ADI_APOLLO_GPIO_BLOCK_PFILT          = 3,
+    ADI_APOLLO_GPIO_BLOCK_CNCO_PFILT     = 4,
+    ADI_APOLLO_GPIO_BLOCK_FNCO_CFIR      = 5,
+    ADI_APOLLO_GPIO_BLOCK_FDDC           = 6,
+    ADI_APOLLO_GPIO_BLOCK_BMEM_DELAY     = 7,
+    ADI_APOLLO_GPIO_BLOCK_CFIR           = 8,
+    ADI_APOLLO_GPIO_BLOCK_FNCO_PFILT     = 9,
+    ADI_APOLLO_GPIO_BLOCK_PFILT_CFIR     = 10,
+    ADI_APOLLO_GPIO_BLOCK_CDDC           = 11,
+    ADI_APOLLO_GPIO_BLOCK_LINX           = 12
 
 Debug system
 ^^^^^^^^^^^^
