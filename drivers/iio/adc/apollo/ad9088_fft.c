@@ -555,22 +555,26 @@ static void ad9088_fft_sniffer_sync_work_func(struct work_struct *work)
 
 int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e side_sel)
 {
+	printk("sniffer start \n");
 	int ret;
 	struct iio_dev *indio_dev;
 	struct ad9088_fft_sniffer_state *st;
 	struct device *dev = &phy->spi->dev;
 
 	static char *irq_name;
+	printk("0\n");
 
 	static adi_apollo_gpio_func_e gpio_func;
 	u8 pin;
 
+	printk("2\n");
 	indio_dev = devm_iio_device_alloc(dev, sizeof(*st));
 	if (!indio_dev) {
 		pr_err("Can't allocate iio device\n");
 		return -ENOMEM;
 	}
 
+	printk("3\n");
 	st = iio_priv(indio_dev);
 	st->dev = dev;
 	st->phy = phy;
@@ -578,6 +582,7 @@ int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e si
 	st->delay_ms = 100;
 	st->mode = 1; /* instant */
 
+	printk("4\n");
 	mutex_init(&st->lock);
 	init_completion(&st->complete);
 	INIT_DELAYED_WORK(&st->sync_work, ad9088_fft_sniffer_sync_work_func);
@@ -609,6 +614,7 @@ int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e si
 		dev_err(&phy->spi->dev, "Invalid side selection\n");
 		return -EINVAL;
 	}
+	printk("5\n");
 
 	st->side_sel = side_sel;
 	st->irq = fwnode_irq_get_byname(dev_fwnode(dev), irq_name);
@@ -627,6 +633,7 @@ int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e si
 	if (ret)
 		return ret;
 
+	printk("6\n");
 	ret = devm_request_irq(dev, st->irq,
 			       ad9088_fft_sniffer_irq_handler, 0,
 			       indio_dev->name, indio_dev);
@@ -637,10 +644,12 @@ int ad9088_fft_sniffer_probe(struct ad9088_phy *phy, adi_apollo_side_select_e si
 	adi_apollo_gpio_cmos_func_mode_set(&phy->ad9088, pin, gpio_func);
 
 	ad9088_rx_sniffer_populate_default_params(ADI_APOLLO_SNIFFER_INSTANT_MAGNITUDE, &st->sniffer_config);
+	printk("7\n");
 
 	ret = devm_iio_device_register(dev, indio_dev);
 
 	ad9088_rx_sniffer_debugfs_init(indio_dev, &st->sniffer_config);
 
+	printk("sniffer probed \n");
 	return ret;
 }

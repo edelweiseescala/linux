@@ -6203,6 +6203,45 @@ static int ad9088_gpio_setup(struct ad9088_phy *phy)
 	return devm_gpiochip_add_data(&phy->spi->dev, &phy->gpiochip, phy);
 }
 
+static int ad9088_adc_cal_data_to_str(struct ad9088_phy *phy, u8 *buf, u32 total_len)
+{
+	u16 adc_cal_chans;
+	u8 mode, adc_num;
+	u32 len;
+	int ret;
+
+	adc_cal_chans = phy->ad9088.dev_info.is_8t8r ? ADI_APOLLO_ADC_ALL : ADI_APOLLO_ADC_ALL_4T4R;
+
+	ret = adi_apollo_cfg_adc_cal_data_len_get(&phy->ad9088, mode, &len);
+	if (ret)
+		return -EFAULT;
+	total_len = len*2; // Number of modes
+	total_len *= phy->ad9088.dev_info.is_8t8r ? 8 : 4;
+
+	buf = kmalloc(total_len, GFP_KERNEL);
+	for (mode = 0; mode < 2; mode++) {
+		for (adc_num = 0; adc_num < ADI_APOLLO_ADC_NUM; adc_num++) {
+			if (adc_cal_chans & (ADI_APOLLO_ADC_A0 << adc_num)) {
+				ret =  adi_apollo_cfg_adc_cal_data_get(&phy->ad9088, (ADI_APOLLO_ADC_A0 << adc_num), mode, buf, len);
+				if (ret)
+					break;
+				buf += len;
+			}
+		}
+	}
+
+	len = 0;
+	printk("value: ");
+	for (u32 i = 0; i < total_len ; i++) {
+		printk(KERN_CONT "%x", buf[i]);
+		//len = snprintf(phy->dbuf + len, sizeof(phy->dbuf) - len, "%x", buf[i]);
+	}
+	printk(KERN_CONT "\n");
+
+	kfree(buf);
+	return 0;
+}
+
 static int ad9088_fw_provider_close(adi_apollo_fw_provider_t *obj, adi_apollo_startup_fw_id_e fw_id)
 {
 	struct ad9088_phy *phy = (struct ad9088_phy *)obj->tag;
@@ -6571,6 +6610,8 @@ static int ad9088_probe(struct spi_device *spi)
 	ad9088_ffh_probe(phy);
 
 	ad9088_gpio_setup(phy);
+
+	ad9088_adc_cal_data_to_str(phy);
 
 	ret = jesd204_fsm_start(jdev, JESD204_LINKS_ALL);
 	if (ret)

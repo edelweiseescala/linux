@@ -24,7 +24,7 @@
 #include <linux/stringify.h>
 #include <linux/delay.h>
 #include <linux/clk.h>
-#include <linux/unaligned.h>
+#include <asm/unaligned.h>
 
 #include "adi-axi-hsci.h"
 
