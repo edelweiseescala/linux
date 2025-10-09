@@ -35,6 +35,13 @@
 		#size-cells = <0x1>;
 		ranges = <0 0 0 0xffffffff>;
 
+		clk_sma: clock@0 {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <245760000>; // in Hz (245.76 MHz)
+			clock-output-names = "clock_sma";
+		};
+
 		rx_dma: dma-controller@9c420000 {
 			compatible = "adi,axi-dmac-1.00.a";
 			reg = <0x9c420000 0x10000>;
@@ -123,7 +130,7 @@
 			compatible = "adi,axi-adxcvr-1.0";
 			reg = <0x84a60000 0x1000>;
 
-			clocks = <&hmc7044 12>;
+			clocks = <&clk_sma>;
 			clock-names = "conv";
 
 			#clock-cells = <1>;
@@ -144,7 +151,7 @@
 			compatible = "adi,axi-adxcvr-1.0";
 			reg = <0x84b60000 0x1000>;
 
-			clocks = <&hmc7044 12>;
+			clocks = <&clk_sma>;
 			clock-names = "conv";
 
 			#clock-cells = <1>;
