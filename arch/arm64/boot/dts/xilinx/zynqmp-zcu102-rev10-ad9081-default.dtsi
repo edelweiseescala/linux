@@ -38,7 +38,7 @@
 		clk_sma: clock@0 {
 			#clock-cells = <0>;
 			compatible = "fixed-clock";
-			clock-frequency = <245760000>; // in Hz (245.76 MHz)
+			clock-frequency = <300000000>; // in Hz (300.00 MHz)
 			clock-output-names = "clock_sma";
 		};
 
