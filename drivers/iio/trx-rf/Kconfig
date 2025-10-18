@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# RF Trnasceivers and Advacend Mixed Signal Frontends drivers
+#
+menu "RF Transceivers and Advacend Mixed Signal Frontends"
+
+config ADRV9102
+	tristate ""
+	depends on SPI
+	select IIO_BACKEND
+	help
+	  Say yes to build support for the Analog Devices ADRV9102 integrated
+	  RF transceiver and similar devices.
+
+	  To compile this driver as a module, choose M here: the module will be
+	  called adrv9102
+
+endmenu
+
