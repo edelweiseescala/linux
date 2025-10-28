@@ -1,0 +1,168 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/leds/leds-ltc3220.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Analog Devices LTC3220 LED Drivers
+
+maintainers:
+  - Edelweise Escala <edelweise.escala@analog.com>
+
+description: |
+  Bindings for the Analog Devices LTC3220 18 channel
+  LED Drivers.
+
+  For more product information please see the link below:
+    https://www.analog.com/en/products/ltc3220.html
+
+properties:
+  compatible:
+    enum:
+      - lltc,ltc3220
+      - lltc,ltc3220-1
+
+  reg:
+    maxItems: 1
+    description: |
+      I2C slave address
+      0x1c for ltc3220
+      0x1d for ltc3220-1
+
+  '#address-cells':
+    const: 1
+
+  '#size-cells':
+    const: 0
+
+  reset-gpios:
+    maxItems: 1
+    description: |
+      GPIO attached to the chip's reset pin
+
+patternProperties:
+  "(^led@[0-9a-f]$|led)":
+    type: object
+    $ref: common.yaml#
+    properties:
+      reg:
+        description: |
+          Output channel for the LED.
+          reg value to output to LED output number
+        enum:
+          - 1  # LED output D1
+          - 2  # LED output D2
+          - 3  # LED output D3
+          - 4  # LED output D4
+          - 5  # LED output D5
+          - 6  # LED output D6
+          - 7  # LED output D7
+          - 8  # LED output D8
+          - 9  # LED output D9
+          - 10 # LED output D10
+          - 11 # LED output D11
+          - 12 # LED output D12
+          - 13 # LED output D13
+          - 14 # LED output D14
+          - 15 # LED output D15
+          - 16 # LED output D16
+          - 17 # LED output D17
+          - 18 # LED output D18
+
+required:
+  - compatible
+  - reg
+  - reset-gpios
+
+additionalProperties: false
+
+examples:
+  - |
+   #include <dt-bindings/leds/common.h>
+
+   i2c {
+       #address-cells = <1>;
+       #size-cells = <0>;
+
+       led-controller@1c {
+             compatible = "lltc,ltc3220";
+             reg = <0x1c>;
+             #address-cells = <1>;
+             #size-cells = <0>;
+             reset-gpios = <&gpio 17 0>;
+
+             led@1 {
+                 reg = <1>;
+             };
+
+             led@2 {
+                 reg = <2>;
+             };
+
+             led@3 {
+                 reg = <3>;
+             };
+
+             led@4 {
+                 reg = <4>;
+             };
+
+             led@5 {
+                 reg = <5>;
+             };
+
+             led@6 {
+                 reg = <6>;
+             };
+
+             led@7 {
+                 reg = <7>;
+             };
+
+             led@8 {
+                 reg = <8>;
+             };
+
+             led@9 {
+                 reg = <9>;
+             };
+
+             led@10 {
+                 reg = <10>;
+             };
+
+             led@11 {
+                 reg = <11>;
+             };
+
+             led@12 {
+                 reg = <12>;
+             };
+
+             led@13 {
+                 reg = <13>;
+             };
+
+             led@14 {
+                 reg = <14>;
+             };
+
+             led@15 {
+                 reg = <15>;
+             };
+
+             led@16 {
+                 reg = <16>;
+             };
+
+             led@17 {
+                 reg = <17>;
+             };
+
+             led@18 {
+                 reg = <18>;
+             };
+        };
+    };
+
+...
